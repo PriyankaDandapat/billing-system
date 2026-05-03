@@ -16,5 +16,16 @@ model User {
   lastname  String
   password  String
   dob       DateTime?
+  role  String @default("USER")
   createdAt DateTime @default(now())
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
 }
