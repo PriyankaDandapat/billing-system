@@ -7,11 +7,20 @@ exports.signup = async (email, password, firstname, lastname, dob) => {
 
   const hashed = await hashPassword(password);
 
+  const dobData = dob ? new Date(dob) : null;
+
   const user = await prisma.user.create({
-    data: { email, password: hashed, firstname, lastname, ...(dob && { dob }) },
+    data: {
+      email,
+      password: hashed,
+      firstname,
+      lastname,
+      ...(dobData && { dob: dobData }),
+    },
   });
 
-  return user;
+  const { password: _, ...safeUser } = user;
+  return safeUser;
 };
 
 exports.login = async (email, password) => {
@@ -21,5 +30,6 @@ exports.login = async (email, password) => {
   const isMatch = await comparePassword(password, user.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
-  return user;
+  const { password: _, ...safeUser } = user;
+  return safeUser;
 };
