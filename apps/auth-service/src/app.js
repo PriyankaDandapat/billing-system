@@ -1,5 +1,6 @@
 const express = require("express");
 const authRoutes = require("./routes/auth.routes");
+const errorMiddleware = require("./middleware/error.middleware");
 
 const app = express();
 
@@ -9,5 +10,6 @@ app.use(express.urlencoded({ extended: true }));
 
 // route the auth paths - API Routes
 app.use("/api/auth", authRoutes);
+app.use(errorMiddleware);
 
 module.exports = app;
