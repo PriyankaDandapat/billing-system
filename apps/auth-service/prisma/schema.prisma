@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  //url = env("DATABASE_URL")
 }
 
 model User {
@@ -23,7 +22,7 @@ model User {
 
 model RefreshToken {
   id        String   @id @default(uuid())
-  token     String
+  token     String   @unique
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
