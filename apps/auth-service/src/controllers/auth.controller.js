@@ -1,5 +1,9 @@
 const authService = require("../services/auth.service");
-const { generateAccessToken, generateRefreshToken } = require("../utils/token");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  REFRESH_TOKEN_TTL_MS,
+} = require("../utils/token");
 const { prisma } = require("../config/db");
 const jwt = require("jsonwebtoken");
 
@@ -32,7 +36,7 @@ exports.login = async (req, res, next) => {
       data: {
         token: refreshToken,
         userId: user.id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
       },
     });
 
@@ -46,8 +50,12 @@ exports.logout = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
 
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token is required" });
+    }
+
     await prisma.refreshToken.deleteMany({
-      where: { token: refreshToken },
+      where: { token: refreshToken, userId: req.user.id },
     });
 
     res.json({ message: "Logged out successfully" });
@@ -60,21 +68,64 @@ exports.refreshToken = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
 
-    const stored = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-    });
+    if (!refreshToken) {
+      return res.status(400).json({ message: "Refresh token is required" });
+    }
 
-    if (!stored) {
-      const err = new Error("Invalid refresh token");
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch {
+      const err = new Error("Invalid or expired refresh token");
       err.statusCode = 401;
       throw err;
     }
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const stored = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
 
-    const accessToken = generateAccessToken({ id: decoded.id });
+    if (
+      !stored ||
+      stored.userId !== decoded.id ||
+      stored.expiresAt <= new Date()
+    ) {
+      const err = new Error("Invalid or expired refresh token");
+      err.statusCode = 401;
+      throw err;
+    }
 
-    res.json({ accessToken });
+    const user = { id: decoded.id };
+    const accessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+    const now = new Date();
+
+    // Rotate the refresh token atomically so a token can only be used once.
+    await prisma.$transaction(async (tx) => {
+      const revoked = await tx.refreshToken.deleteMany({
+        where: {
+          token: refreshToken,
+          userId: decoded.id,
+          expiresAt: { gt: now },
+        },
+      });
+
+      if (revoked.count !== 1) {
+        const err = new Error("Invalid or expired refresh token");
+        err.statusCode = 401;
+        throw err;
+      }
+
+      await tx.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: decoded.id,
+          expiresAt: new Date(now.getTime() + REFRESH_TOKEN_TTL_MS),
+        },
+      });
+    });
+
+    res.json({ accessToken, refreshToken: newRefreshToken });
   } catch (err) {
     next(err);
   }

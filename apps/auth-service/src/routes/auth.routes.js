@@ -9,7 +9,7 @@ router.get("/hello", (req, res) => {
 });
 router.post("/signup", validateSignup, authController.signup);
 router.post("/login", authController.login);
-router.post("/refresh", protect,authController.refreshToken);
+router.post("/refresh", authController.refreshToken);
 router.post("/logout", protect, authController.logout);
 
 module.exports = router;
