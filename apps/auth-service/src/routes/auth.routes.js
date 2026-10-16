@@ -1,3 +1,4 @@
+// Maps auth API paths to their controllers and applies signup validation or access-token protection.
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");

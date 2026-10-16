@@ -1,3 +1,4 @@
+// Verifies the access token from the Authorization header and attaches its user claims to the request.
 const jwt = require("jsonwebtoken");
 
 exports.protect = (req, res, next) => {

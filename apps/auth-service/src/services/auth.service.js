@@ -1,3 +1,4 @@
+// Contains authentication business logic for creating users and checking login credentials.
 const { prisma } = require("../config/db");
 const { hashPassword, comparePassword } = require("../utils/hash");
 

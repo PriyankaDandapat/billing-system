@@ -1,3 +1,4 @@
+// Starts the HTTP server, connects to PostgreSQL, and handles shutdown and fatal errors.
 require("dotenv").config();
 const { connectDB, disconnectDB } = require("./config/db");
 const app = require("./app");

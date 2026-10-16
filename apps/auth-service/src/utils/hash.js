@@ -1,3 +1,4 @@
+// Hashes passwords before storage and compares submitted passwords with stored hashes.
 const bcrypt = require("bcrypt");
 
 exports.hashPassword = (password) => {

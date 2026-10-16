@@ -1,3 +1,4 @@
+// Converts errors passed by route handlers into consistent JSON HTTP responses.
 module.exports = (err, req, res, next) => {
   console.error(err); // replace later with logger
 

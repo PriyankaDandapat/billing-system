@@ -1,3 +1,4 @@
+// Configures the Express application, request parsing, auth routes, and error handling.
 const express = require("express");
 const authRoutes = require("./routes/auth.routes");
 const errorMiddleware = require("./middleware/error.middleware");

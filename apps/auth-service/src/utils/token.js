@@ -1,3 +1,4 @@
+// Creates signed access and refresh JWTs and defines the refresh-token lifetime.
 const jwt = require("jsonwebtoken");
 
 const REFRESH_TOKEN_TTL_MS = 5 * 24 * 60 * 60 * 1000;

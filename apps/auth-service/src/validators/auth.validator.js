@@ -1,3 +1,4 @@
+// Checks required signup fields before the request reaches the authentication controller.
 exports.validateSignup = (req, res, next) => {
   const { email, password } = req.body;
 

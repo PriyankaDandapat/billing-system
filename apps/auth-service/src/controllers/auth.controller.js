@@ -1,3 +1,4 @@
+// Handles HTTP requests for signup, login, refresh-token rotation, and logout.
 const authService = require("../services/auth.service");
 const {
   generateAccessToken,
