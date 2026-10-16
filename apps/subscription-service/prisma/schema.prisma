@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  engineType = "binary"  
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BillingInterval{
+    MONTHLY
+    YEARLY
+}
+
+enum SubscriptionStatus{
+    ACTIVE
+    CANCELLED
+}
+
+model Plan {
+  id              String            @id @default(uuid())
+  name            String
+  description     String?
+  priceMinor      Int               // Price in the currency's smallest unit, e.g. paise
+  currency        String            @default("INR")
+  billingInterval BillingInterval
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  subscriptions   Subscription[]
+}
+
+model Subscription {
+  id                String             @id @default(uuid())
+  userId            String             // ID from auth-service; no cross-service database relation
+  planId            String
+  plan              Plan               @relation(fields: [planId], references: [id])
+  status            SubscriptionStatus @default(ACTIVE)
+
+  // Snapshot the plan terms so later plan edits don't change this subscription.
+  priceMinor        Int
+  currency          String
+  billingInterval   BillingInterval
+
+  startDate         DateTime           @default(now())
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
