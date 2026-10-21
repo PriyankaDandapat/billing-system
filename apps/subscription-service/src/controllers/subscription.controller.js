@@ -51,3 +51,21 @@ exports.getUserSubscription = async (req, res) => {
     return res.status(500).json({ message: "Failed to get subscription" });
   }
 };
+
+exports.cancelSubscription = async (req, res) => {
+  try {
+    const subscription = await subscriptionService.cancelUserSubscription(
+      req.user.id,
+      req.params.id,
+    );
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    return res.json({ message: "Subscription cancelled", subscription });
+  } catch (error) {
+    console.error("Failed to cancel subscription:", error);
+    return res.status(500).json({ message: "Failed to cancel subscription" });
+  }
+};

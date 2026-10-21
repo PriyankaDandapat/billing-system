@@ -9,5 +9,10 @@ const router = express.Router();
 router.post("/", protect, subscriptionController.createSubscription);
 router.get("/", protect, subscriptionController.listUserSubscriptions);
 router.get("/:id", protect, subscriptionController.getUserSubscription);
+router.post(
+  "/:id/cancel",
+  protect,
+  subscriptionController.cancelSubscription,
+);
 
 module.exports = router;

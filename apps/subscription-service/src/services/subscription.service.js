@@ -47,3 +47,17 @@ exports.getUserSubscription = (userId, subscriptionId) =>
     where: { id: subscriptionId, userId },
     include: { plan: true },
   });
+
+exports.cancelUserSubscription = async (userId, subscriptionId) => {
+  const subscription = await prisma.subscription.findFirst({
+    where: { id: subscriptionId, userId },
+  });
+
+  if (!subscription) return null;
+
+  return prisma.subscription.update({
+    where: { id: subscription.id },
+    data: { status: "CANCELLED" },
+    include: { plan: true },
+  });
+};
