@@ -22,7 +22,7 @@ model Plan {
   id              String            @id @default(uuid())
   name            String
   description     String?
-  priceMinor      Int               // Price in the currency's smallest unit, e.g. paise
+  price      Int               // Price in the currency's smallest unit, e.g. paise
   currency        String            @default("INR")
   billingInterval BillingInterval
   isActive        Boolean           @default(true)
@@ -39,7 +39,7 @@ model Subscription {
   status            SubscriptionStatus @default(ACTIVE)
 
   // Snapshot the plan terms so later plan edits don't change this subscription.
-  priceMinor        Int
+  price        Int
   currency          String
   billingInterval   BillingInterval
 
