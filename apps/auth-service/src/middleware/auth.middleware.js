@@ -2,7 +2,12 @@
 const jwt = require("jsonwebtoken");
 
 exports.protect = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  // const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Bearer token required" });
+  }
+  const token = authHeader.slice("Bearer ".length);
 
   if (!token) return res.status(401).json({ message: "No token" });
 
