@@ -34,3 +34,10 @@ exports.createSubscription = async (userId, planId) => {
     },
   });
 };
+
+exports.listUserSubscriptions = (userId) =>
+  prisma.subscription.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    include: { plan: true },
+  });

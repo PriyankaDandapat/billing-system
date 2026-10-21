@@ -21,3 +21,15 @@ exports.createSubscription = async (req, res) => {
     return res.status(500).json({ message: "Failed to create subscription" });
   }
 };
+
+exports.listUserSubscriptions = async (req, res) => {
+  try {
+    const subscriptions = await subscriptionService.listUserSubscriptions(
+      req.user.id,
+    );
+    return res.json({ subscriptions });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to list subscriptions" });
+    console.error("Failed to list subscriptions:", error);
+  }
+};
