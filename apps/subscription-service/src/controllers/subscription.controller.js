@@ -33,3 +33,21 @@ exports.listUserSubscriptions = async (req, res) => {
     console.error("Failed to list subscriptions:", error);
   }
 };
+
+exports.getUserSubscription = async (req, res) => {
+  try {
+    const subscription = await subscriptionService.getUserSubscription(
+      req.user.id,
+      req.params.id,
+    );
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    return res.json({ subscription });
+  } catch (error) {
+    console.error("Failed to get subscription:", error);
+    return res.status(500).json({ message: "Failed to get subscription" });
+  }
+};

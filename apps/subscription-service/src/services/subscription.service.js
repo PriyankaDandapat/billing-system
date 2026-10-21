@@ -41,3 +41,9 @@ exports.listUserSubscriptions = (userId) =>
     orderBy: { createdAt: "desc" },
     include: { plan: true },
   });
+
+exports.getUserSubscription = (userId, subscriptionId) =>
+  prisma.subscription.findFirst({
+    where: { id: subscriptionId, userId },
+    include: { plan: true },
+  });
