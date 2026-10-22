@@ -1,4 +1,5 @@
 const { prisma } = require("../config/db");
+const { publishSubscriptionCreate } = require("../config/kafka");
 
 exports.createSubscription = async (userId, planId) => {
   const plan = await prisma.plan.findUnique({
@@ -22,7 +23,7 @@ exports.createSubscription = async (userId, planId) => {
     currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
   }
 
-  return prisma.subscription.create({
+  const subscription = await prisma.subscription.create({
     data: {
       userId,
       planId: plan.id,
@@ -33,6 +34,9 @@ exports.createSubscription = async (userId, planId) => {
       currentPeriodEnd,
     },
   });
+
+  await publishSubscriptionCreate(subscription);
+  return subscription;
 };
 
 exports.listUserSubscriptions = (userId) =>
