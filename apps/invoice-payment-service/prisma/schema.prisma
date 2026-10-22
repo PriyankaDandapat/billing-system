@@ -1,0 +1,73 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum InvoiceStatus {
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+model Invoice {
+  id              String          @id @default(uuid())
+  invoiceNumber   String          @unique
+  userId          String
+  subscriptionId  String
+  amount          Int             // Same whole-currency-unit convention as subscription-service.
+  currency        String          @default("INR")
+  billingInterval BillingInterval
+  status          InvoiceStatus   @default(OPEN)
+  periodStart     DateTime
+  periodEnd       DateTime
+  dueAt           DateTime
+  paidAt          DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  paymentAttempts PaymentAttempt[]
+
+  // Prevent duplicate invoices for the same subscription period.
+  @@unique([subscriptionId, periodStart])
+  @@index([userId])
+  @@index([status, dueAt])
+}
+
+model PaymentAttempt {
+  id                String              @id @default(uuid())
+  invoiceId         String
+  userId            String
+  amount            Int                 // Amount attempted, in the invoice's currency units.
+  currency          String              @default("INR")
+  status            PaymentAttemptStatus @default(PENDING)
+  attemptNumber     Int                 @default(1)
+  provider          String              @default("MOCK")
+  providerPaymentId String?             @unique
+  idempotencyKey    String?             @unique
+  failureReason     String?
+  attemptedAt       DateTime            @default(now())
+  completedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  invoice           Invoice             @relation(fields: [invoiceId], references: [id])
+
+  @@index([userId])
+  @@index([invoiceId, attemptNumber])
+  @@index([status])
+}
