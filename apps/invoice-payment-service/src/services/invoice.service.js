@@ -1,4 +1,5 @@
 const { prisma } = require("../config/db");
+const { publishPaymentResult } = require("../config/kafka");
 
 const supportedIntervals = new Set(["MONTHLY", "YEARLY"]);
 
@@ -78,8 +79,8 @@ exports.listUserPaymentAttempts = async (userId, invoiceId) => {
   });
 };
 
-exports.createMockPaymentAttempt = async (userId, invoiceId, mockResult) =>
-  prisma.$transaction(async (tx) => {
+exports.createMockPaymentAttempt = async (userId, invoiceId, mockResult) => {
+  const result = await prisma.$transaction(async (tx) => {
     const invoice = await tx.invoice.findFirst({
       where: { id: invoiceId, userId },
     });
@@ -121,3 +122,10 @@ exports.createMockPaymentAttempt = async (userId, invoiceId, mockResult) =>
 
     return { paymentAttempt, invoice: updatedInvoice };
   });
+
+  if (result) {
+    await publishPaymentResult(result);
+  }
+
+  return result;
+};

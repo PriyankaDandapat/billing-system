@@ -27,6 +27,7 @@ exports.createSubscription = async (userId, planId) => {
     data: {
       userId,
       planId: plan.id,
+      status: "PENDING_PAYMENT",
       price: plan.price,
       currency: plan.currency,
       billingInterval: plan.billingInterval,
@@ -37,6 +38,48 @@ exports.createSubscription = async (userId, planId) => {
 
   await publishSubscriptionCreate(subscription);
   return subscription;
+};
+
+exports.handlePaymentResult = async (event) => {
+  if (!event.subscriptionId || !event.userId) {
+    throw new Error("Payment result event is missing subscription or user ID");
+  }
+
+  if (event.eventType === "payment.succeeded") {
+    const result = await prisma.subscription.updateMany({
+      where: {
+        id: event.subscriptionId,
+        userId: event.userId,
+        status: "PENDING_PAYMENT",
+      },
+      data: { status: "ACTIVE" },
+    });
+
+    if (result.count === 1) {
+      return { status: "ACTIVE", updated: true };
+    }
+
+    const subscription = await prisma.subscription.findFirst({
+      where: { id: event.subscriptionId, userId: event.userId },
+      select: { status: true },
+    });
+
+    return { status: subscription?.status ?? null, updated: false };
+  }
+
+  if (event.eventType === "payment.failed") {
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        id: event.subscriptionId,
+        userId: event.userId,
+      },
+      select: { status: true },
+    });
+
+    return { status: subscription?.status ?? null, updated: false };
+  }
+
+  return null;
 };
 
 exports.listUserSubscriptions = (userId) =>

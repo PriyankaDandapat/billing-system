@@ -14,6 +14,7 @@ enum BillingInterval{
 }
 
 enum SubscriptionStatus{
+    PENDING_PAYMENT
     ACTIVE
     CANCELLED
 }
@@ -36,7 +37,7 @@ model Subscription {
   userId            String             // ID from auth-service; no cross-service database relation
   planId            String
   plan              Plan               @relation(fields: [planId], references: [id])
-  status            SubscriptionStatus @default(ACTIVE)
+  status            SubscriptionStatus @default(PENDING_PAYMENT)
 
   // Snapshot the plan terms so later plan edits don't change this subscription.
   price        Int
