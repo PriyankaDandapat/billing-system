@@ -1,5 +1,5 @@
 const express = require("express");
-const invoiceRoutes = require("./routes/invoice.routes");
+const invoiceRoutes = require("./src/routes/invoice.routes");
 
 const app = express();
 
