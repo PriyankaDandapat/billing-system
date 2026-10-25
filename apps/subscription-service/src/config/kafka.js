@@ -12,15 +12,10 @@ const kafka = new Kafka({
     .filter(Boolean),
 });
 
-const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: "subscription-payment-results" });
-let producerConnected = false;
 let consumerConnected = false;
 
 const connectKafka = async () => {
-  await producer.connect();
-  producerConnected = true;
-
   await consumer.connect();
   consumerConnected = true;
   await consumer.subscribe({
@@ -76,37 +71,9 @@ const disconnectKafka = async () => {
     consumerConnected = false;
     await consumer.disconnect();
   }
-  if (producerConnected) {
-    producerConnected = false;
-    await producer.disconnect();
-  }
-};
-
-const publishSubscriptionCreate = async (subscription) => {
-  await producer.send({
-    topic: "subscription-events",
-    messages: [
-      {
-        key: subscription.id,
-        value: JSON.stringify({
-          eventType: "subscription.created",
-          subscriptionId: subscription.id,
-          userId: subscription.userId,
-          planId: subscription.planId,
-          price: subscription.price,
-          currency: subscription.currency,
-          billingInterval: subscription.billingInterval,
-          startDate: subscription.startDate,
-          currentPeriodEnd: subscription.currentPeriodEnd,
-          createdAt: subscription.createdAt,
-        }),
-      },
-    ],
-  });
 };
 
 module.exports = {
   connectKafka,
   disconnectKafka,
-  publishSubscriptionCreate,
 };

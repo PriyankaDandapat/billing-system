@@ -1,5 +1,4 @@
 const { prisma } = require("../config/db");
-const { publishSubscriptionCreate } = require("../config/kafka");
 
 exports.createSubscription = async (userId, planId) => {
   const plan = await prisma.plan.findUnique({
@@ -23,21 +22,42 @@ exports.createSubscription = async (userId, planId) => {
     currentPeriodEnd.setFullYear(currentPeriodEnd.getFullYear() + 1);
   }
 
-  const subscription = await prisma.subscription.create({
-    data: {
-      userId,
-      planId: plan.id,
-      status: "PENDING_PAYMENT",
-      price: plan.price,
-      currency: plan.currency,
-      billingInterval: plan.billingInterval,
-      startDate,
-      currentPeriodEnd,
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const subscription = await tx.subscription.create({
+      data: {
+        userId,
+        planId: plan.id,
+        status: "PENDING_PAYMENT",
+        price: plan.price,
+        currency: plan.currency,
+        billingInterval: plan.billingInterval,
+        startDate,
+        currentPeriodEnd,
+      },
+    });
 
-  await publishSubscriptionCreate(subscription);
-  return subscription;
+    await tx.outboxEvent.create({
+      data: {
+        aggregateType: "subscription",
+        aggregateId: subscription.id,
+        type: "subscription.created",
+        payload: {
+          eventType: "subscription.created",
+          subscriptionId: subscription.id,
+          userId: subscription.userId,
+          planId: subscription.planId,
+          price: subscription.price,
+          currency: subscription.currency,
+          billingInterval: subscription.billingInterval,
+          startDate: subscription.startDate.toISOString(),
+          currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
+          createdAt: subscription.createdAt.toISOString(),
+        },
+      },
+    });
+
+    return subscription;
+  });
 };
 
 exports.handlePaymentResult = async (event) => {

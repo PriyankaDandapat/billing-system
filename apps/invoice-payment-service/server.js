@@ -5,8 +5,6 @@ const { connectDB, disconnectDB } = require("./src/config/db");
 const {
   connectConsumer,
   disconnectConsumer,
-  connectProducer,
-  disconnectProducer,
 } = require("./src/config/kafka");
 
 const PORT = process.env.PORT || 3003;
@@ -15,7 +13,6 @@ let server;
 const startServer = async () => {
   try {
     await connectDB();
-    await connectProducer();
     await connectConsumer();
 
     server = app.listen(PORT, () => {
@@ -24,7 +21,6 @@ const startServer = async () => {
   } catch (error) {
     console.error("Failed to start billing/payment service:", error);
     await disconnectConsumer();
-    await disconnectProducer();
     await disconnectDB();
     process.exit(1);
   }
@@ -38,7 +34,6 @@ const shutdown = async (signal) => {
   }
 
   await disconnectConsumer();
-  await disconnectProducer();
   await disconnectDB();
   process.exit(0);
 };

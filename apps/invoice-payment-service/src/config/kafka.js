@@ -14,48 +14,8 @@ const kafka = new Kafka({
   brokers,
 });
 
-const producer = kafka.producer();
 const consumer = kafka.consumer({ groupId: "invoice-payment-service" });
 let connected = false;
-let producerConnected = false;
-
-const connectProducer = async () => {
-  await producer.connect();
-  producerConnected = true;
-};
-
-const disconnectProducer = async () => {
-  if (!producerConnected) return;
-  producerConnected = false;
-  await producer.disconnect();
-};
-
-const publishPaymentResult = async ({ paymentAttempt, invoice }) => {
-  const eventType =
-    paymentAttempt.status === "SUCCEEDED"
-      ? "payment.succeeded"
-      : "payment.failed";
-
-  await producer.send({
-    topic: process.env.KAFKA_PAYMENT_TOPIC || "payment-events",
-    messages: [
-      {
-        // Keep payment-result events for the same subscription on the same partition.
-        key: invoice.subscriptionId,
-        value: JSON.stringify({
-          eventType,
-          paymentAttemptId: paymentAttempt.id,
-          invoiceId: invoice.id,
-          subscriptionId: invoice.subscriptionId,
-          userId: invoice.userId,
-          amount: paymentAttempt.amount,
-          currency: paymentAttempt.currency,
-          occurredAt: paymentAttempt.completedAt,
-        }),
-      },
-    ],
-  });
-};
 
 const isValidSubscriptionEvent = (event) => {
   const validDate = (value) =>
@@ -133,7 +93,4 @@ const disconnectConsumer = async () => {
 module.exports = {
   connectConsumer,
   disconnectConsumer,
-  connectProducer,
-  disconnectProducer,
-  publishPaymentResult,
 };
