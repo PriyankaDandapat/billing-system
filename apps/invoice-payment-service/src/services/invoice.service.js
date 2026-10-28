@@ -1,5 +1,4 @@
 const { prisma } = require("../config/db");
-const { publishPaymentResult } = require("../config/kafka");
 
 const supportedIntervals = new Set(["MONTHLY", "YEARLY"]);
 
@@ -120,12 +119,27 @@ exports.createMockPaymentAttempt = async (userId, invoiceId, mockResult) => {
         })
       : invoice;
 
+    const eventType = succeeded ? "payment.succeeded" : "payment.failed";
+    await tx.outboxEvent.create({
+      data: {
+        aggregateType: "payment",
+        aggregateId: invoice.subscriptionId,
+        type: eventType,
+        payload: {
+          eventType,
+          paymentAttemptId: paymentAttempt.id,
+          invoiceId: updatedInvoice.id,
+          subscriptionId: updatedInvoice.subscriptionId,
+          userId: updatedInvoice.userId,
+          amount: paymentAttempt.amount,
+          currency: paymentAttempt.currency,
+          occurredAt: paymentAttempt.completedAt.toISOString(),
+        },
+      },
+    });
+
     return { paymentAttempt, invoice: updatedInvoice };
   });
-
-  if (result) {
-    await publishPaymentResult(result);
-  }
 
   return result;
 };
