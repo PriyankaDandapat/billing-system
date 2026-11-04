@@ -1,0 +1,14 @@
+.git
+.github
+.turbo
+node_modules
+**/node_modules
+**/generated
+.env
+.env.*
+**/.env
+**/.env.*
+npm-debug.log*
+coverage
+**/.next
+**/dist
