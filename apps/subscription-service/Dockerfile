@@ -10,9 +10,9 @@ RUN apt-get update \
 # Build from the repository root so the npm workspace and shared auth files are available.
 COPY . .
 
-RUN npm ci --omit=dev --workspace=invoice_payment_service --include-workspace-root=false \
+RUN npm ci --omit=dev --workspace=subscription-service --include-workspace-root=false \
     && DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
-       npm run db:generate --workspace=invoice_payment_service
+       npm run db:generate --workspace=subscription-service
 
 USER node
 
