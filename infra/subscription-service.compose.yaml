@@ -1,0 +1,18 @@
+services:
+  subscription:
+    image: subscription-service:latest
+    container_name: subscription-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: ${SUBSCRIPTION_DATABASE_URL:?Set SUBSCRIPTION_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
+      KAFKA_BROKERS: broker:29092
+      KAFKA_SUBSCRIPTION_TOPIC: payment-events
+      KAFKA_FROM_BEGINNING: "false"
+    depends_on:
+      - broker
