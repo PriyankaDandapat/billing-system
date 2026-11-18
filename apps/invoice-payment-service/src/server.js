@@ -1,11 +1,8 @@
 require("dotenv").config();
 
 const app = require("./app");
-const { connectDB, disconnectDB } = require("./src/config/db");
-const {
-  connectConsumer,
-  disconnectConsumer,
-} = require("./src/config/kafka");
+const { connectDB, disconnectDB } = require("./config/db");
+const { connectConsumer, disconnectConsumer } = require("./config/kafka");
 
 const PORT = process.env.PORT || 3003;
 let server;

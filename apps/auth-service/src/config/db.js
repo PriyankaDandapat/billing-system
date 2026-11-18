@@ -1,5 +1,5 @@
 // Creates the Prisma/PostgreSQL client and exposes database connect and disconnect helpers.
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require("../../generated/prisma");
 const { PrismaPg } = require("@prisma/adapter-pg");
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });

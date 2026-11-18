@@ -1,0 +1,13 @@
+services:
+  auth:
+    image: auth-service:latest
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: ${AUTH_DATABASE_URL:?Set AUTH_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}

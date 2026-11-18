@@ -1,0 +1,17 @@
+services:
+  invoice-payment:
+    image: invoice-payment-service:latest
+    container_name: invoice-payment-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: ${INVOICE_DATABASE_URL:?Set INVOICE_DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      KAFKA_BROKERS: broker:29092
+      KAFKA_SUBSCRIPTION_TOPIC: subscription-events
+      KAFKA_FROM_BEGINNING: "false"
+    depends_on:
+      - broker
